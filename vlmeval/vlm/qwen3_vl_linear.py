@@ -15,6 +15,20 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 
+def resolve_path(path: str | None) -> str | None:
+    """Resolve path relative to PROJECT_ROOT if it doesn't exist as-is."""
+    if path is None:
+        return None
+    if os.path.isabs(path) and os.path.exists(path):
+        return path
+    # Try relative to PROJECT_ROOT
+    project_path = os.path.join(PROJECT_ROOT, path)
+    if os.path.exists(project_path):
+        return project_path
+    # Return original (will fail later with clear error)
+    return path
+
+
 def ensure_file_url(path: str) -> str:
     """Ensure path has file:// prefix for Qwen3-VL processor."""
     prefixes = ['http://', 'https://', 'file://', 'data:']
@@ -50,8 +64,9 @@ class Qwen3VLLinearAttention(Qwen3VLPromptMixin, BaseModel):
     ):
         super().__init__(use_custom_prompt=use_custom_prompt)
         self.model_path = model_path
-        self.linear_attention_checkpoint = linear_attention_checkpoint
-        self.lora_adapter_path = lora_adapter_path
+        # Resolve relative paths to PROJECT_ROOT
+        self.linear_attention_checkpoint = resolve_path(linear_attention_checkpoint)
+        self.lora_adapter_path = resolve_path(lora_adapter_path)
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels
         self.max_new_tokens = max_new_tokens
