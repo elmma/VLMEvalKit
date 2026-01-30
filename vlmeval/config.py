@@ -1269,7 +1269,28 @@ qwen3vl_series = {
         top_k=20,
         max_new_tokens=16384,
     ),
-    
+
+}
+
+# Linear attention (distilled) variants of Qwen3-VL
+qwen3vl_linear_series = {
+    # Distilled only (replace paths with your checkpoint locations)
+    "Qwen3-VL-2B-Linear": partial(
+        Qwen3VLLinearAttention,
+        model_path="Qwen/Qwen3-VL-2B-Instruct",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+        temperature=0.01,
+        max_new_tokens=2048,
+    ),
+    # Distilled + LoRA fine-tuned
+    "Qwen3-VL-2B-Linear-LoRA": partial(
+        Qwen3VLLinearAttention,
+        model_path="Qwen/Qwen3-VL-2B-Instruct",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+        lora_adapter_path=None,  # Set to your LoRA adapter path
+        temperature=0.01,
+        max_new_tokens=2048,
+    ),
 }
 
 sail_series = {
@@ -2004,7 +2025,7 @@ model_groups = [
     idefics_series, instructblip_series, deepseekvl_series, deepseekvl2_series, 
     janus_series, minicpm_series, cogvlm_series, wemm_series, cambrian_series, 
     chameleon_series, video_models, ovis_series, vila_series, mantis_series,
-    mmalaya_series, phi3_series, phi4_series, xgen_mm_series, qwen2vl_series,qwen3vl_series,
+    mmalaya_series, phi3_series, phi4_series, xgen_mm_series, qwen2vl_series, qwen3vl_series, qwen3vl_linear_series,
     slime_series, eagle_series, moondream_series, llama_series, molmo_series,
     kosmos_series, points_series, nvlm_series, vintern_series, h2ovl_series,
     aria_series, smolvlm_series, sail_series, valley_series, vita_series,
