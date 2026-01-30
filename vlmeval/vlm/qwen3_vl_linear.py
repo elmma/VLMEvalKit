@@ -98,12 +98,12 @@ class Qwen3VLLinearAttention(Qwen3VLPromptMixin, BaseModel):
         )
 
         # Apply linear attention if checkpoint provided
-        if linear_attention_checkpoint:
-            self._apply_linear_attention(linear_attention_checkpoint)
+        if self.linear_attention_checkpoint:
+            self._apply_linear_attention(self.linear_attention_checkpoint)
 
         # Load LoRA adapter if provided
-        if lora_adapter_path:
-            self._load_lora_adapter(lora_adapter_path)
+        if self.lora_adapter_path:
+            self._load_lora_adapter(self.lora_adapter_path)
 
         self.model.eval()
         torch.cuda.empty_cache()
