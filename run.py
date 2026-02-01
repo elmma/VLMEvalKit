@@ -76,9 +76,11 @@ def build_model_from_config(cfg, model_name, use_vllm=False):
 def build_dataset_from_config(cfg, dataset_name):
     import vlmeval.dataset
     import inspect
+    from vlmeval.dataset import build_dataset
     config = cp.deepcopy(cfg[dataset_name])
     if config == {}:
-        return supported_video_datasets[dataset_name]()
+        # Use the proper build_dataset function that handles all dataset types
+        return build_dataset(dataset_name)
     assert 'class' in config
     cls_name = config.pop('class')
     if hasattr(vlmeval.dataset, cls_name):
