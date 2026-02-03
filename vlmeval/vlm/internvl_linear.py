@@ -104,9 +104,11 @@ class InternVL3LinearAttention(InternVLChat):
         if self.linear_attention_checkpoint:
             self._apply_linear_attention(self.linear_attention_checkpoint)
 
-        # Load LoRA adapter if provided
-        if self.lora_adapter_path:
+        # Load LoRA adapter if provided and path exists
+        if self.lora_adapter_path and os.path.exists(self.lora_adapter_path):
             self._load_lora_adapter(self.lora_adapter_path)
+        elif self.lora_adapter_path:
+            print(f"Warning: LoRA adapter path does not exist: {self.lora_adapter_path}")
 
         self.model.eval()
         
