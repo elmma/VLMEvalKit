@@ -4,7 +4,7 @@ import json
 import os
 import sys
 import torch
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModelForVision2Seq, AutoTokenizer
 
 from .internvl.internvl_chat import InternVLChat
 
@@ -89,8 +89,9 @@ class InternVL3LinearAttention(InternVLChat):
         self.reverse_pattern = r'Image-(\d+)'
         self.reverse_replacement = r'Image\1'
         
-        # Load model
-        self.model = AutoModel.from_pretrained(
+        # Load model using AutoModelForVision2Seq to get InternVLForConditionalGeneration
+        # which has prepare_inputs_for_generation (required for PEFT LoRA)
+        self.model = AutoModelForVision2Seq.from_pretrained(
             model_path,
             torch_dtype=torch.bfloat16,
             load_in_8bit=load_in_8bit,
