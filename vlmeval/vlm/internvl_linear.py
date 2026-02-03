@@ -4,7 +4,7 @@ import json
 import os
 import sys
 import torch
-from transformers import AutoModelForVision2Seq, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer
 
 from .internvl.internvl_chat import InternVLChat
 
@@ -63,9 +63,7 @@ class InternVL3LinearAttention(InternVLChat):
         # Store kwargs before parent init
         self._linear_kwargs = kwargs.copy()
         
-        # We need to manually initialize to inject linear attention before loading weights
-        # Instead of calling super().__init__, do manual initialization
-        
+        # Manual initialization (not calling super().__init__)
         self.model_path = model_path
         self.version = version
         self.use_lmdeploy = False
@@ -89,9 +87,8 @@ class InternVL3LinearAttention(InternVLChat):
         self.reverse_pattern = r'Image-(\d+)'
         self.reverse_replacement = r'Image\1'
         
-        # Load model using AutoModelForVision2Seq to get InternVLForConditionalGeneration
-        # which has prepare_inputs_for_generation (required for PEFT LoRA)
-        self.model = AutoModelForVision2Seq.from_pretrained(
+        # Load model with trust_remote_code (InternVL models require this)
+        self.model = AutoModel.from_pretrained(
             model_path,
             torch_dtype=torch.bfloat16,
             load_in_8bit=load_in_8bit,
@@ -159,29 +156,43 @@ class InternVL3LinearAttention(InternVLChat):
             print(f"Loaded weights: {len(missing)} missing, {len(unexpected)} unexpected")
 
     def _load_lora_adapter(self, adapter_path: str):
-        """Load LoRA adapter weights onto the language model.
+        """Load LoRA adapter weights manually without PeftModel.from_pretrained.
         
-        InternVL wraps the language model, so we need to apply PEFT
-        to model.language_model rather than the full model.
+        This avoids the prepare_inputs_for_generation requirement for custom models.
         """
-        from peft import PeftModel
+        from peft import PeftConfig, get_peft_model, set_peft_model_state_dict
+        from safetensors.torch import load_file
         
-        # InternVL structure: model.language_model is the LLM backbone
+        # Load PEFT config
+        peft_config = PeftConfig.from_pretrained(adapter_path)
+        
+        # Get target module - for InternVL it should be the language_model
         if hasattr(self.model, 'language_model'):
-            self.model.language_model = PeftModel.from_pretrained(
-                self.model.language_model,
-                adapter_path,
-                is_trainable=False
-            )
+            target_model = self.model.language_model
             if self.verbose:
-                print(f"Loaded LoRA adapter onto language_model from {adapter_path}")
+                print(f"Applying LoRA to language_model: {type(target_model).__name__}")
         else:
-            # Fallback for other model structures
-            self.model = PeftModel.from_pretrained(
-                self.model,
-                adapter_path,
-                is_trainable=False
-            )
-            if self.verbose:
-                print(f"Loaded LoRA adapter from {adapter_path}")
-
+            target_model = self.model
+        
+        # Apply PEFT to target model
+        target_model = get_peft_model(target_model, peft_config)
+        
+        # Load adapter weights
+        adapter_weights_path = os.path.join(adapter_path, "adapter_model.safetensors")
+        if os.path.exists(adapter_weights_path):
+            adapter_weights = load_file(adapter_weights_path)
+        else:
+            adapter_weights_path = os.path.join(adapter_path, "adapter_model.bin")
+            adapter_weights = torch.load(adapter_weights_path, map_location="cpu")
+        
+        # Set the weights
+        set_peft_model_state_dict(target_model, adapter_weights)
+        
+        # Update reference
+        if hasattr(self.model, 'language_model'):
+            self.model.language_model = target_model
+        else:
+            self.model = target_model
+        
+        if self.verbose:
+            print(f"Loaded LoRA adapter from {adapter_path}")
