@@ -156,12 +156,29 @@ class InternVL3LinearAttention(InternVLChat):
             print(f"Loaded weights: {len(missing)} missing, {len(unexpected)} unexpected")
 
     def _load_lora_adapter(self, adapter_path: str):
-        """Load LoRA adapter weights."""
+        """Load LoRA adapter weights onto the language model.
+        
+        InternVL wraps the language model, so we need to apply PEFT
+        to model.language_model rather than the full model.
+        """
         from peft import PeftModel
-        self.model = PeftModel.from_pretrained(
-            self.model,
-            adapter_path,
-            is_trainable=False
-        )
-        if self.verbose:
-            print(f"Loaded LoRA adapter from {adapter_path}")
+        
+        # InternVL structure: model.language_model is the LLM backbone
+        if hasattr(self.model, 'language_model'):
+            self.model.language_model = PeftModel.from_pretrained(
+                self.model.language_model,
+                adapter_path,
+                is_trainable=False
+            )
+            if self.verbose:
+                print(f"Loaded LoRA adapter onto language_model from {adapter_path}")
+        else:
+            # Fallback for other model structures
+            self.model = PeftModel.from_pretrained(
+                self.model,
+                adapter_path,
+                is_trainable=False
+            )
+            if self.verbose:
+                print(f"Loaded LoRA adapter from {adapter_path}")
+
