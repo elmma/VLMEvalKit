@@ -37,6 +37,7 @@ from .qwen_vl import QwenVL, QwenVLChat
 from .qwen2_vl import Qwen2VLChat, Qwen2VLChatAguvis
 from .qwen3_vl import Qwen3VLChat
 from .qwen3_vl_linear import Qwen3VLLinearAttention
+from .qwen2_vl_linear import Qwen2VLLinearAttention
 from .transcore_m import TransCoreM
 from .visualglm import VisualGLM
 from .xcomposer import (

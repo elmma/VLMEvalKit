@@ -1293,6 +1293,44 @@ qwen3vl_linear_series = {
     ),
 }
 
+# Linear attention (distilled) variants of Qwen2-VL
+qwen2vl_linear_series = {
+    # Distilled only (replace paths with your checkpoint locations)
+    "Qwen2-VL-2B-Linear": partial(
+        Qwen2VLLinearAttention,
+        model_path="Qwen/Qwen2-VL-2B-Instruct",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+        temperature=0.01,
+        max_new_tokens=2048,
+    ),
+    # Distilled + LoRA fine-tuned
+    "Qwen2-VL-2B-Linear-LoRA": partial(
+        Qwen2VLLinearAttention,
+        model_path="Qwen/Qwen2-VL-2B-Instruct",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+        lora_adapter_path=None,  # Set to your LoRA adapter path
+        temperature=0.01,
+        max_new_tokens=2048,
+    ),
+}
+
+# Linear attention (distilled) variants of InternVL3
+internvl3_linear_series = {
+    # Distilled only (replace paths with your checkpoint locations)
+    "InternVL3-2B-Linear": partial(
+        InternVL3LinearAttention,
+        model_path="OpenGVLab/InternVL3-2B-hf",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+    ),
+    # Distilled + LoRA fine-tuned
+    "InternVL3-2B-Linear-LoRA": partial(
+        InternVL3LinearAttention,
+        model_path="OpenGVLab/InternVL3-2B-hf",
+        linear_attention_checkpoint=None,  # Set to your distilled checkpoint path
+        lora_adapter_path=None,  # Set to your LoRA adapter path
+    ),
+}
+
 sail_series = {
     "SAIL-VL-2B": partial(SailVL, model_path="BytedanceDouyinContent/SAIL-VL-2B"),
     "SAIL-VL-1.5-2B": partial(SailVL, model_path="BytedanceDouyinContent/SAIL-VL-1d5-2B", use_msac = True),
@@ -2025,7 +2063,8 @@ model_groups = [
     idefics_series, instructblip_series, deepseekvl_series, deepseekvl2_series, 
     janus_series, minicpm_series, cogvlm_series, wemm_series, cambrian_series, 
     chameleon_series, video_models, ovis_series, vila_series, mantis_series,
-    mmalaya_series, phi3_series, phi4_series, xgen_mm_series, qwen2vl_series, qwen3vl_series, qwen3vl_linear_series,
+    mmalaya_series, phi3_series, phi4_series, xgen_mm_series, qwen2vl_series, qwen3vl_series,
+    qwen3vl_linear_series, qwen2vl_linear_series, internvl3_linear_series,
     slime_series, eagle_series, moondream_series, llama_series, molmo_series,
     kosmos_series, points_series, nvlm_series, vintern_series, h2ovl_series,
     aria_series, smolvlm_series, sail_series, valley_series, vita_series,
