@@ -110,6 +110,7 @@ class Qwen3VLLinearAttention(Qwen3VLPromptMixin, BaseModel):
         if zero_heads:
             from src.models.head_ablation import zero_attention_heads
             zero_attention_heads(self.model, zero_heads)
+            print(f"[Head Ablation] Zeroed {len(zero_heads)} head(s): {zero_heads}")
 
         self.model.eval()
         torch.cuda.empty_cache()
