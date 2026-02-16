@@ -60,6 +60,7 @@ class Qwen2VLLinearAttention(Qwen2VLPromptMixin, BaseModel):
         use_custom_prompt: bool = True,
         system_prompt: str | None = None,
         verbose: bool = False,
+        zero_heads: list | None = None,
         **kwargs,
     ):
         super().__init__(use_custom_prompt=use_custom_prompt)
@@ -104,6 +105,11 @@ class Qwen2VLLinearAttention(Qwen2VLPromptMixin, BaseModel):
         # Load LoRA adapter if provided
         if self.lora_adapter_path:
             self._load_lora_adapter(self.lora_adapter_path)
+
+        # Apply head ablation (zero specific attention heads)
+        if zero_heads:
+            from src.models.head_ablation import zero_attention_heads
+            zero_attention_heads(self.model, zero_heads)
 
         self.model.eval()
         torch.cuda.empty_cache()

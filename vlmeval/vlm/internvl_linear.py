@@ -43,6 +43,7 @@ class InternVL3LinearAttention(InternVLChat):
         load_in_8bit: bool = False,
         version: str = "V2.0",
         verbose: bool = False,
+        zero_heads: list | None = None,
         **kwargs,
     ):
         """Initialize InternVL3 with linear attention.
@@ -107,6 +108,11 @@ class InternVL3LinearAttention(InternVLChat):
             self._load_lora_adapter(self.lora_adapter_path)
         elif self.lora_adapter_path:
             print(f"Warning: LoRA adapter path does not exist: {self.lora_adapter_path}")
+
+        # Apply head ablation (zero specific attention heads)
+        if zero_heads:
+            from src.models.head_ablation import zero_attention_heads
+            zero_attention_heads(self.model, zero_heads)
 
         self.model.eval()
         
